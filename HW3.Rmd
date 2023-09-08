@@ -1,0 +1,112 @@
+---
+title: "HW3"
+author: "Getong Zhong"
+date: "2022-09-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1 
+
+### (a)
+```{r}
+class(mtcars)
+is.matrix(mtcars)
+is.data.frame(mtcars)
+```
+Therefore mtcars is a data frame, not a matrix.
+
+### (b)
+```{r}
+help(mtcars)
+summary(mtcars)
+```
+Based on the help file on mtcars we know that mtcars collects comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles from 1974 Motor Trend US magazine.
+
+### (c)
+Engine, Transmission, Cyl and Gear from the mtcars can called categorical. In Engine (vs) 0 stands for V-shaped, 1 stands for straight and in Transmission (am) 0 stands for automatic, 1 stands for manual. Therefore, 1 and 0 only represent one type of engine or Transmission and there is no exact meaning to calculate the mean or median for these two variable in mtcars. For Cyl, counts for the number of cylinders, there is only 3 different number for cyl:4,6,8; so that we can categorized cars with 4 cyl, 6 cyl and 8 cyl. For Gear, counts for Number of forward gears, there is also 3 different number for gear:3,4,5; so that we can categorized cars with 3 front gears, 4 front gears and 5 front gears. 
+
+## Problem 2 
+
+```{r}
+x = mtcars$hp
+y = mtcars$mpg
+plot(x, y, main = "Horsepower vs Miles per Gallon (base R)",
+     xlab = "Horsepower", ylab = "Miles per Gallon",
+     pch = 19, frame = FALSE)
+abline(lm(y ~ x, data = mtcars), col = "blue")
+```
+```{r}
+library(ggplot2)
+ggplot(data = mtcars, mapping = aes(x=hp, y=mpg)) + 
+  geom_point() + 
+  xlab("Horsepower") + 
+  ylab("Miles per Gallon") + 
+  geom_smooth(method=lm,se=FALSE)+
+  ggtitle("Horsepower vs MPG (ggplot2)")
+
+```
+There is a negative relationship between the horsepower and miles per gallon. The higher the horsepower of the car-the more fuel it consumes per gallon, leading to the lower the mile per gallon.
+
+## Problem 3
+```{r}
+mtcars<- within(mtcars, {   
+  am.cat <- NA # need to initialize variable
+  am.cat[am == 0] <- "automatic"
+  am.cat[am == 1] <- "manual"
+   } )
+ggplot(data = mtcars, mapping = aes(x=am.cat, y=mpg)) + 
+  geom_violin()+
+  geom_boxplot(width=0.1)+
+  xlab("Transmission") + 
+  ylab("Miles per Gallon") + 
+  ggtitle("MPG conditional on transition type (automatic or not)")
+```
+For cars is automatic transmission, we can observe a clearly lower MPG, which centered at 17.5 mpg, maximum around 24 mpg and minimum around 10 mpg; for cars is manual transmission, we can observe a generally higher mpg, which centered around 22.5 mpg, maximum around 33 mpg, minimum around 15 mpg.
+
+## Problem 4
+### Dodged Barchart
+```{r}
+mtcars$gear.factor<-factor(mtcars$gear)
+mtcars$cyl.factor<-factor(mtcars$cyl)
+ggplot(data = mtcars, mapping = aes(x = gear.factor, fill = cyl.factor)) + 
+  geom_bar(position = "dodge") + 
+  xlab("Number of forward gears") + 
+  ylab("MPG") + 
+  ggtitle("Dodged Barchart") + 
+  guides(fill = guide_legend(title = "Number of cylinders"))
+```
+In the dodged barchart we can see that averagely cars with 3 front gears and 8 cylinders have the highest mpg, cars with 4 front gears generally have higher mpg than cars with 5 gears and cars with 3 gears but don't have 8 cylinders. Both cars with 5 gears and with 3 gears but don't have 8 cylinders have a relatively low mpg but no clearly differentiation between them. 
+
+### Stacked Barchart
+```{r}
+ggplot(data = mtcars, mapping = aes(x = gear.factor, fill = cyl.factor)) + 
+  geom_bar() + 
+  xlab("Number of forward gears") + 
+  ylab("Count") + 
+  ggtitle("Stacked Barchart") + 
+  guides(fill = guide_legend(title = "Number of cylinders"))
+```
+From the stacked barchart we can see that cars with 5 gears are the most rare type of car, and cars with 3 front gears are the most common type of car. Among all the cars with 3 front gears, they most commonly have 8 cylinders and only a few of them have 4 or 6 cylinders. In contrast, for cars with 4 front gears, none of the of 8 cylinders, more than half of them have 4 cylinders. For cars with 5 forward gears, cars with 6 cylinders are the most rare of them, cars with 4 and 8 cylinders have about the same propotion. 
+### 100% stacked bar chart
+```{r}
+ggplot(data = mtcars, mapping = aes(x = gear.factor, fill = cyl.factor)) + 
+  geom_bar(position = "fill") + 
+  xlab("Number of forward gears") + 
+  ylab("Count") + 
+  ggtitle("100% Stacked Barchart") + 
+  guides(fill = guide_legend(title = "Number of cylinders"))
+```
+
+## Problem 5
+```{r}
+mtcars$model<-rownames(mtcars)
+ggplot(data = mtcars, mapping = aes(x = hp, y = mpg)) + 
+  geom_text(mapping = aes(label = model, color =am.cat)) + 
+  xlab("Horsepower") + 
+  ylab("MPG") + 
+  ggtitle("1974 automobile performance")
+```

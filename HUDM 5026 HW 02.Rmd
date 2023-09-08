@@ -1,0 +1,78 @@
+---
+title: "HUDM 5026 HW 02"
+author: "Getong Zhong"
+date: "2022-09-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+```{r}
+path <- paste(c("C:/Users/tonyg/Desktop/",
+                "Academic/Grad/HUDM 5026/", 
+                "states.csv"),
+              collapse = "")
+states <- read.csv(file = path)
+income <- states[,3]
+length(income)
+class(income)
+names(income)
+```
+
+## Problem 2
+```{r}
+income[c(5,50)]
+income[40:50]
+```
+
+## Problem 3
+```{r}
+library(ggplot2)
+ggplot(data = states, mapping = aes(x = income)) + 
+  xlab("Per capita income of each states in 1974") +
+  geom_boxplot()
+```
+
+From the boxplot created above we can know that, the minimum of income is about 3100, the maximum of income is around 5500, the medium of income is about 4500, the first quartile of income is about 4000, the third quartile of income is close to 4800, and there is one outlier of the population with the value around 6300.
+
+## Problem 4
+```{r}
+ggplot(data = states, mapping = aes(x = income)) + 
+  geom_histogram(breaks = seq(3000, 8000, 200), 
+                 col = "black", fill = "cadetblue3") + 
+  xlab("Per capita income of each states in 1974") + 
+  ggtitle("Frequency histogram with 25 bins")
+
+ggplot(data = states, mapping = aes(x = income)) + 
+  geom_histogram(breaks = seq(3000, 8000, 1000), 
+                 col = "black", fill = "cadetblue3") + 
+  xlab("Per capita income of each states in 1974") + 
+  ggtitle("Frequency histogram with 5 bins")
+```
+
+Compare 25 bins and 5 bins, I prefer frequency histogram with 25 bins. For 25 bins, then have thinner histograms so that we can better observe the distribution of income. For example, we can see there are less states has per capita income around 4300 than around 3700 from the 25 bins histograms, but we cannot get that information from the 5 bins histograms.
+
+## Problem 5
+```{r}
+ggplot(data = states, mapping = aes(x = income)) + 
+  geom_density(col = "steelblue", lwd = 1.05) + 
+  xlab("Per capita income of each states in 1974") + 
+  ggtitle("Kernel Density Plot")
+``` 
+
+From the Kernel density plot, we can see that there is the highest density of states have a per capita income around 4700, and very low density around 3200 and 6000, which all can have seen in the histogram since the highest histogram is around 4700, and very low histogram around 3200 and 6000.
+
+## Problem 6
+```{r}
+ggplot(data = states, mapping = aes(sample = income)) + 
+  geom_qq(distribution = stats::qnorm) + 
+  geom_qq_line(distribution = stats::qnorm) + 
+  xlab("Theoretical normal quantiles") + 
+  ylab("Sample quantiles")
+```
+
+From the QQ plot we create, we can see that the population (per capita income of each states) are mostly fit the straight line with very little skewness, therefore we can conclude that this distribution is evenly aligned with the normal distribution.
+ 

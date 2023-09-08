@@ -1,0 +1,144 @@
+---
+title: "Hw6"
+author: "Getong Zhong"
+date: "2022-10-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggExtra)
+```
+
+## Part I
+### Problem 1
+
+#### (a)
+```{r}
+
+dec <- read.csv("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/decath.csv")
+is.tibble(dec)
+```
+It is not tibble since it print out more than 10 rows 
+
+#### (b)
+```{r}
+print(dec, max.levels = NULL, width = 300)
+```
+
+
+### Problem 2
+```{r}
+apply(X = dec, MARGIN = 2, FUN = mean)
+apply(X = dec, MARGIN = 2, FUN = sd)
+```
+
+### Problem 3
+```{r}
+cov(dec)
+```
+
+```{r}
+round(cor(dec),2)
+```
+From the correlation matrice above we can see for X100 it has a pairwise correlation with long, X400, and X110 for a absolute value over 0.5, for long it has a high correlation when pair with long X100 and X400 as well. I think these pairwise correlation kind of make sense to me. Because X100, X400 amd X110 are all mid and short distance so it is not suprise that they have a strong positive corelation with each other, and for long jump it is a totally different sport so it is not suprise that it has a strong negative correlation with the speeding games. 
+### Problem 4
+```{r}
+library(corrplot)
+corrplot(cor(dec), order = "hclust") 
+```
+Disq (discus throw) and poid (shotput) are pretty similar games which require athelet to have a great strength, and even this the similar rules that the are competing how far you can throw/push the heavy ball/discus , so it is make sense that they are inter-correlated .
+
+### Problem 5
+#### (a)
+```{r}
+plot(dec$disq, dec$poid, main = "discus vs shot put (R base)",
+     xlab = "Scores for discus", 
+     ylab = "Scores for shot put")
+
+```
+
+#### (b)
+```{r}
+plot(dec$poid, dec$jave, main = "shot put vs javelin (R base)",
+     xlab = "Scores for shot put", 
+     ylab = "Scores for javelin")
+```
+
+#### (c)
+```{r}
+plot(dec$disq, dec$jave, main = "discus vs javelin (R base)",
+     xlab = "Scores for discus", 
+     ylab = "Scores for javelin")
+```
+
+#### (d)
+```{r}
+hist(dec$poid, main = "shot put Histogram (R base)",
+     xlab = "Scores for shot put", 
+     ylab = "Count")
+```
+### Problem 6
+```{r}
+par(mfrow = c(2,2))
+plot(dec$disq, dec$poid, main = "discus vs shot put (R base)",
+     xlab = "Scores for discus", 
+     ylab = "Scores for shot put")
+plot(dec$poid, dec$jave, main = "shot put vs javelin (R base)",
+     xlab = "Scores for shot put", 
+     ylab = "Scores for javelin")
+plot(dec$disq, dec$jave, main = "discus vs javelin (R base)",
+     xlab = "Scores for discus", 
+     ylab = "Scores for javelin")
+hist(dec$poid, main = "shot put Histogram (R base)",
+     xlab = "Scores for shot put", 
+     ylab = "Count")
+```
+
+### Problem 7
+```{r}
+p1 <- ggplot(data = dec, mapping = aes(x = disq, y = poid)) +
+  geom_point() +
+  xlab("Scores for discus") + 
+  ylab("Scores for shot put") +
+  theme(legend.position = "none")
+  
+
+ggMarginal(p1, type = "density")
+```
+
+## Part II
+### Problem 1
+```{r}
+acu <- read.csv("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/acupuncture.csv", header = TRUE)
+
+```
+
+### Problem 2
+```{r}
+acu2 <- acu[
+  order(acu$group, acu$sex, acu$age),
+]
+
+```
+
+### Problem 3
+```{r}
+acu3 <- subset(acu, group == 1 & age > 30)
+
+```
+
+### Problem 4
+```{r}
+fourty_percentile <- quantile(acu$pk1, c(0.4))
+
+acu4 <- subset(acu, pk1 >= fourty_percentile)
+
+
+```
+
+### Problem 5
+```{r}
+acu[which(acu$sex == 1 & acu$age >= 40), ]
+```

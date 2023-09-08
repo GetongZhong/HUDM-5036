@@ -1,0 +1,105 @@
+---
+title: "Untitled"
+author: "Getong Zhong"
+date: "2022-09-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+acupuncture<-read.csv("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/acupuncture.csv")
+```
+
+## Problem 1
+
+For pk1:
+```{r}
+min(acupuncture$pk1)
+quantile(acupuncture$pk1,probs = 0.25)
+median(acupuncture$pk1)
+quantile(acupuncture$pk1,probs = 0.75)
+max(acupuncture$pk1) 
+```
+
+For pk5:
+```{r}
+min(acupuncture$pk5)
+quantile(acupuncture$pk5,probs = 0.25)
+median(acupuncture$pk5)
+quantile(acupuncture$pk5,probs = 0.75)
+max(acupuncture$pk5)
+```
+
+## Problem 2
+
+Construct a function that calculates the min, Q1, median, Q3, and max values of a vector:
+```{r}
+fivevalues<-function(x){
+  Min <- min(x)
+  Q1 <- quantile(x, probs = 0.25)
+  Median <- median(x)
+  Q3 <- quantile(x, probs = 0.75)
+  Max <- max(x)
+  answer <- data.frame(c(Min, Q1, Median, Q3, Max))
+  rownames(answer) <- c("Min:", "1st quartile:", "Median:", "3rd quartile:", "Max:")
+  return(answer)
+  
+}
+```
+
+Apply the function to age:
+```{r}
+fivevalues(acupuncture$age)
+```
+
+Apply the funvtion to sex:
+```{r}
+fivevalues(acupuncture$sex)
+```
+
+Apply the function to migraine:
+```{r}
+fivevalues(acupuncture$migraine)
+```
+
+Apply the function to chronicity:
+```{r}
+fivevalues(acupuncture$chronicity)
+```
+
+Apply the function to pk1:
+```{r}
+fivevalues(acupuncture$pk1)
+```
+
+Apply the function to pk5:
+```{r}
+fivevalues(acupuncture$pk5)
+```
+
+## Problem 3
+```{r}
+library(knitr)
+combine<-cbind(fivevalues(acupuncture$sex), fivevalues(acupuncture$migraine), fivevalues(acupuncture$chronicity),
+      fivevalues(acupuncture$pk1), fivevalues(acupuncture$pk5))
+
+colnames(combine) <- c("sex", "migraine", "chronicity", "pk1", "pk5")
+kable(combine, caption = "Combined Output From Problem 2")
+```
+## Problem 4
+```{r}
+
+prob4<-function(x){
+  Min <- min(x)
+  Q1 <- quantile(x, probs = 0.25)
+  Median <- median(x)
+  Q3 <- quantile(x, probs = 0.75)
+  Max <- max(x)
+  tbl <- data.frame(c(Min, Q1, Median, Q3, Max))
+  rownames(tbl) <- c("Min:", "1st quartile:", "Median:", "3rd quartile:", "Max:")
+  plot<-boxplot(x, main = "Boxplot", horizontal = TRUE, staplewex = 1, xla = "Scores")
+  return(tbl)
+}
+prob4(acupuncture$pk1)
+prob4(acupuncture$pk5)
+```

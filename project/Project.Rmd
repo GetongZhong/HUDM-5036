@@ -1,0 +1,200 @@
+---
+title: 'How to analysis changes in NBA games'' playing style by analyzing the changes
+  of stats of players in NBA '
+author: "Getong Zhong"
+date: "2022-12-16"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+spacing: double
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(vtable)
+library(tidyverse)
+library( ggpubr )
+library(car)
+```
+
+
+
+## Introduction & literature review 
+In this project, I would like to analyze the change in NBA play style between 2011 to 2020 years by looking at the difference in stats that players produce on the court. Due to the big variation of players’ stats between the playoff and regular season, especially for star players, I would only consider regular season stats in this project. The performance of NBA players across different positions can be compared to each other in the same standard with the same data set. Unlike the NFL, a player’s performance across different positions is measured across different categories of stats. \
+
+I didn’t find a paper that uses the same data as I do, but there are many of them which use similar data or write with a similar purpose as I do. In the paper “Predicting NBA Player Performance”, the author used a more advanced machine learning algorithm to predict the performance of individual NBA players. The author mentioned the extension of predicting the outcomes of games by predicting the scoring performances of each player and summing them up. Therefore, the prediction of an individual’s performance can also contribute to the win-loss classifier. In the results of this paper, the author found out that the standard deviation of a player’s performance is usually big due to injury and coach strategies which are all unpredictable but always affect the player’s performance a lot. The author also mentioned another important factor, the confidence level of a player. The confidence level of a player is always determined by not only how well he is but also by how well his teammates or opponents play in the game, and his confidence level could affect his performance. But the author has not yet found a way to present a player’s confidence level in the regression model, since such a confidence level is not numeric and does not have a standard to measure. In another paper, "Trends in NBA and Euroleague basketball: Analysis and comparison of statistical data from 2000 to 2017", the author compares NBA and Euroleague basketball by the box-score statistics. They found out that the differences in win-loss determining factors are very small. From both leagues, game results are normally determined by four factors that could explain most of the variation in their game results. Considering the biggest difference between Euroleague and NBA, they mentioned the "game pace", whereas in NBA there are more numbers of possessions per game. In particular, the numbers of blocks per game, fouls per game, and the number of free throws per game (free throws are usually caused by opponent’s fouls) in NBA games are higher than in Euroleague. This can be possibly explained by the fact that NBA players have better athleticism and the Euroleague puts more emphasis on plays and tactical aspects of basketball.\
+
+ Such results from the previous study are helpful to my project. As known fact that players’ performance always variates a lot, I will not only consider points they made in the game as the only standard to measure their performance, but I will also include other stats such as assists, rebounds, steals, blocks, turnovers into the measurements of their on-court performance. Besides, in the second article that contrasts the NBA and Euroleague, the author mentioned game pace difference and compare the difference in athleticism between NBA and Euro players which can explain most of the variation between the NBA and Euroleague. With that in mind, and knowing NBA has more stretch Four, Stretch Five in nowadays game than before, if I want to compare the difference in play style with the athleticism of players does not change a lot, I should take a look into other angles such as 3-pointers per game, assists per game to analysis the change of the game.
+
+## Methods and Sample
+
+### Table of Descriptive Statistics
+In this paper, I'm using the box score from the top 188 NBA players (determined by YAHOO) from 2011 to 2020. In this data, there are 9 different variables.\
+-p/g, stands for numbers of points a player averagely makes per game. \
+-3/g, stands for numbers of 3-pointers a player averagely makes per game. \
+-r/g, numbers of stands for rebounds a player averagely grabs per game.\
+-a/g, numbers of stands for assists a player averagely makes per game.\
+-s/g, stands for numbers of steals a player averagely makes per game.\
+-b/g, stands for numbers of blocks a player averagely makes per game.\
+-fg%, stands for percentage of field goal a player averagely has per game (calculated by field goal make/ field goal attempts)\
+-ft% stands for percentage of free threw a player averagely has per game (calculated by free throw make / free throw attempts), to/g, stands for number of turnovers a player averagely makes per game. 
+```{r, echo=FALSE}
+
+data2020 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2020data.xls")
+data2019 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2019data.xls")
+data2018 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2018data.xls")
+data2017 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2017data.xls")
+data2016 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2016data.xls")
+data2015 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2015data.xls")
+data2014 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2014data.xls")
+data2013 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2013data.xls")
+data2012 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2012data.xls")
+data2011 <- read_excel("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/project/2011data.xls")
+merge <- rbind( data2020, data2019, data2018, data2017, data2016, data2015, data2014,
+                data2013, data2012, data2011)
+sumtable(merge)
+```
+
+From the table, we can see that the standard deviation for every variable is high and the gap between the 75 percentile and the Max value is also big. Among all the variables Field goal percentage has the smallest standard deviation and half of the players can average their field goal percentage in the range between 43% to 50 %, which also shows field goal percentage is the variable that is the most predictable among others. "3/g" has the most variation with a mean value of it is 1.2 and half of the player average of around 0.319 to 1.846 but the maximum is 5.349 means that 3 pointers ability among players variates a lot, there are some of the players are much better at 3-point-shooting than others. 
+
+### Graphical and Statistical methods
+In this project, I will perform an exploratory analysis of trends by plotting the variables over time. In each scatterplot, I will use the mean value of different variables over time to show the trend. For example, if I get a plot of average turnovers per game and observe a line with a positive slope (in an increasing trend), that means that NBA players tend to make more and more turnovers in today's game than in the past. This outcome is not only caused by one factor but a net outcome that is affected by multiple factors, I will analyze each trend and give my interpretation based on each result. In addition, I want to create a model to predict a player's scoring ability based on other variables. To do that I will first show the correlation table between all the variables and the scatter plots between each variable and "p/g" (average points per game) so that I can decide what kind of regression model I would like to use, and what variables I would like to add to the model, and check if transformation is necessary to the model. \
+
+Before all of that, I will do some modifications to the data, so that I can make my later process easier. The initial data I got had 16 variables in total, I first deleted some of them and remain the variables that I think can present the player's performance more directly. And then I put a 0 value to the missing data to make it in good integrity. I also make 9 data frames from the initial data to get the mean value of each variable with the corresponding Year, so that it is convenient for me to create plots about those values later on. 
+```{r, echo=FALSE}
+a = data.frame( Mean = c(mean(data2011$`p/g`),mean(data2012$`p/g`),mean(data2013$`p/g`)
+                         ,mean(data2014$`p/g`),mean(data2015$`p/g`),mean(data2016$`p/g`)
+                         ,mean(data2017$`p/g`),mean(data2018$`p/g`),mean(data2019$`p/g`)
+                         ,mean(data2020$`p/g`)),Year = seq(2011,2020))
+
+b = data.frame( Mean = c(mean(data2011$`3/g`),mean(data2012$`3/g`),mean(data2013$`3/g`)
+                         ,mean(data2014$`3/g`),mean(data2015$`3/g`),mean(data2016$`3/g`)
+                         ,mean(data2017$`3/g`),mean(data2018$`3/g`),mean(data2019$`3/g`)
+                         ,mean(data2020$`3/g`)), Year = seq(2011,2020))
+
+c =  data.frame( Mean = c(mean(data2011$`r/g`),mean(data2012$`r/g`),mean(data2013$`r/g`)
+                          ,mean(data2014$`r/g`),mean(data2015$`r/g`),mean(data2016$`r/g`)
+                          ,mean(data2017$`r/g`),mean(data2018$`r/g`),mean(data2019$`r/g`)
+                          ,mean(data2020$`r/g`)),Year = seq(2011,2020))
+
+d =  data.frame( Mean = c(mean(data2011$`a/g`),mean(data2012$`a/g`),mean(data2013$`a/g`)
+                          ,mean(data2014$`a/g`),mean(data2015$`a/g`),mean(data2016$`a/g`)
+                          ,mean(data2017$`a/g`),mean(data2018$`a/g`),mean(data2019$`a/g`)
+                          ,mean(data2020$`a/g`)),Year = seq(2011,2020))
+
+e =  data.frame( Mean = c(mean(data2011$`s/g`),mean(data2012$`s/g`),mean(data2013$`s/g`)
+                          ,mean(data2014$`s/g`),mean(data2015$`s/g`),mean(data2016$`s/g`)
+                          ,mean(data2017$`s/g`),mean(data2018$`s/g`),mean(data2019$`s/g`)
+                          ,mean(data2020$`s/g`)),Year = seq(2011,2020))
+
+f =  data.frame( Mean = c(mean(data2011$`b/g`),mean(data2012$`b/g`),mean(data2013$`b/g`)
+                          ,mean(data2014$`b/g`),mean(data2015$`b/g`),mean(data2016$`b/g`)
+                          ,mean(data2017$`b/g`),mean(data2018$`b/g`),mean(data2019$`b/g`)
+                          ,mean(data2020$`b/g`)),Year = seq(2011,2020))
+
+g =  data.frame( Mean = c(mean(data2011$`fg%`),mean(data2012$`fg%`),mean(data2013$`fg%`)
+                          ,mean(data2014$`fg%`),mean(data2015$`fg%`),mean(data2016$`fg%`)
+                          ,mean(data2017$`fg%`),mean(data2018$`fg%`),mean(data2019$`fg%`)
+                          ,mean(data2020$`fg%`)),Year = seq(2011,2020))
+
+h =  data.frame( Mean = c(mean(data2011$`ft%`),mean(data2012$`ft%`),mean(data2013$`ft%`)
+                          ,mean(data2014$`ft%`),mean(data2015$`ft%`),mean(data2016$`ft%`)
+                          ,mean(data2017$`ft%`),mean(data2018$`ft%`),mean(data2019$`ft%`)
+                          ,mean(data2020$`ft%`)),Year = seq(2011,2020))
+
+i =  data.frame( Mean = c(mean(data2011$`to/g`),mean(data2012$`to/g`),mean(data2013$`to/g`)
+                          ,mean(data2014$`to/g`),mean(data2015$`to/g`),mean(data2016$`to/g`)
+                          ,mean(data2017$`to/g`),mean(data2018$`to/g`),mean(data2019$`to/g`)
+                          ,mean(data2020$`to/g`)),Year = seq(2011,2020))
+
+
+```
+
+
+
+## Findings
+### Visulization and Graphs
+Before presenting the graphs, I would like to present the correlations between each variable and interpret some of them that might support my later interpretation of the graphs. In the correlation chart we can see that points (p/g) and turnovers (to/g), points (p/g) and threes (3/g) have a high positive relationship (0.72 and 0.47 respectively) which means a player tends to score more points in a game usually might also turn the ball over more times, and a player who can make more threes can also likely to score more points. These positive relationships between them are reasonable, since the player who can score more usually touches the ball more, and if they have the ball in their hand longer than other players, the chance to turn the ball over for them is also higher. The positive relationship between threes and points is also straightforward, if you can make 3 points per shot rather than 2 points per shot, you can easily score more points. However, it is more difficult to make a 3-point shot than 2 point shot, so the relationship between points per game and 3-pointer per game is not that high (only 0.44). Rebound (r/g) and blocks (b/g) also has a high positive relationship (0.62). This also makes a lot of sense, since taller players are more likely to protect the rebounds and they are also easier to block other players as they are taller. 
+```{r, echo=FALSE}
+cor(merge[,-1])
+```
+Now we can take a look at the graphs. In the graph of "p/g", points scored per game by an NBA player, we can see a clear positive line that shows NBA players tend to score more points from 2011 to 2020. Meanwhile, a similar positive line shows in the graph of "3/g", this can easily relate to the positive relationship between "p/g' and "3/g", as more three-pointers are made in the game, average points a player scores and the total scores are all going to increase. However, as another variable that has a strong positive relationship with the "p/g", "to/g" doesn't have the same graph, it goes up and down every year since 2011, and we can conclude a kind of negative trend is there more the turnovers per game. Similar to "to/g", "s/g" (steals per game) has almost the same graph as "to/g", except for the year 2019. Recall the correlations chart, we can observe a positive relationship (0.468) between these two variables as well. In real life, a correlation between turnovers and steals is also reasonable. Players get one turnover when they lose control of the ball, sometimes the ball goes out of the bound and switches the possessions of the ball or it falls to an opponents player's hand, and that count as a steal for that opponent player, that why the positive relationship makes sense. Although not all turnovers will result in a steal many of them did. In the graph of "a/g" (assist per game) and "ft%", the trend is surprisingly similar to each other, worth mentioning that the year 2015 has the lowest in assists, free-throw percentage, and highest in blocks. These strange results can only be explained by the data of 2015, it included more C and PF players (who are usually good and blocking, but bad in assists and ft%). Besides, the negative relationship between blocks and free-throw percentage (-0.42) can also prove this interpretation. Considering the changes in the playing style of NBA players in general, the biggest difference is that they likely to make more three-pointers. And the NBA game is more pleasant to watch nowadays as an audience than in the past: you can see they make more shots with a higher field goal percentage, and they are not likely to turn the ball over so the game has a better fluency than before, they play more like a team, and try harder to share the ball with their teammate on the court. Those are all the improvements in NBA, improvements in modern Basketball.
+```{r, echo=FALSE}
+
+pg <- ggplot(a, aes( x = Year, y=Mean)) + geom_point()+geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+threeg <- ggplot(b, aes( x = Year, y=Mean)) + geom_point()+geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+rg <- ggplot(c, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ag <- ggplot(d, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+sg <- ggplot(e, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+bg <- ggplot(f, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+fg <- ggplot(g, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ft <- ggplot(h, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+to <- ggplot(i, aes( x = Year, y=Mean)) + geom_point() + geom_smooth(se = FALSE)+ scale_x_discrete(limits=seq(2011,2020)) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+ggarrange(pg, threeg, rg, ag, sg, bg, fg, ft, to, 
+          labels = c("p/g", "3/g", "r/g", "a/g", "s/g", "b/g", "fg%", "ft%", "to/g"),
+          ncol = 3, nrow = 3)
+```
+
+### Regression model
+In the second part of the Findings, a regression model will be used to predict the points per game a player could averagely predict based on all the data from 2011 to 2020. Recall the correlation table block per game and fg% have a very weak relationship with "p/g". Therefore, the initial model will only include the other 6 variables.
+```{r, echo=FALSE}
+attach(merge)
+model <- lm(`p/g` ~ `3/g`+ `r/g` + `to/g` + `fg%` + `ft%` + `s/g` + `a/g`)
+detach(merge)
+summary(model)
+```
+
+An R-squared value of 0.73 refers to a good fit and all the predictors, are highly statistically
+significant. But we should check out the scatter plots and diagnostic plots.\ 
+
+From the scatterplots, we can see that there exists some evidence of a non-linear relationship between the response and the predictors, though not a lot. However, inter-predictor scatters are quite curvy, which will lead to problems with std. residuals analysis and unknown model misspecification. Also, some predictors seem very highly correlated among themselves. Let us recall the correlation matrix again:
+
+```{r, echo=FALSE}
+attach(merge)
+pairs(merge[,-1][,-7])
+cor(cbind(`3/g`, `r/g` , `to/g` , `fg%` , `ft%` , `s/g` , `a/g`))
+```
+As suspected, we have there are some predictors with high correlation, such as "a/g" and "t/g", and that might result in a sort of multicollinearity. Let us look at VIF:
+```{r, echo=FALSE}
+vif(model)
+```
+This shows that the predictors "to/g" and "a/g" are relatively poorly estimated compared to others, this also proves our analysis of the potential multicollinearity of the model. Lets then take a look at the standard diagnostic plots:
+
+```{r, echo=FALSE}
+par(mfrow = c(2, 2))
+plot(model)
+```
+Normality of std. residuals is an issue and the sq-root of std residuals do have a slight pattern, indicating this model might not be good enough. We should take a look at the std. residuals vs predictor plots:
+```{r, echo=FALSE,warning=FALSE, comment=FALSE, warning=FALSE}
+par(mfrow = c(2, 4))
+plot(`3/g`,rstandard(model), ylab="Standardized Residuals")
+plot(`r/g`,rstandard(model), ylab="Standardized Residuals")
+plot(`to/g` ,rstandard(model), ylab="Standardized Residuals")
+plot(`fg%`,rstandard(model), ylab="Standardized Residuals")
+plot(`ft%`,rstandard(model), ylab="Standardized Residuals")
+plot(`s/g` ,rstandard(model), ylab="Standardized Residuals")
+plot(`a/g`,rstandard(model), ylab="Standardized Residuals")
+```
+
+Patterns seem not apparent for most predictors, but we have to say that ft% and 3/g present some evidence of curves. However, due to the big variation in players' stats, outliers seem to be really apparent. Overall, the model has a good performance in R-square value, and good significance on each variable, but poorly in outliers and leverage points with some high-correlation predictors that might lead to a sort of multicollinearity.
+
+## Discussion 
+In the first half of my findings, the trend of Player performance on the court from 2011 to 2020 in the NBA catches a lot of similarities with the second paper I mentioned in the literature review. Especially for the 3-pointers made per player, the positive curve line in the graph in early of my report indicates a substantial shift in how the game is played in the NBA. The author of my second literature review also stated a similar trend of more three-point is observable in the Euroleague as well, but on a smaller scale of increment. What He also mentioned is the decreasing number of free-throw attempts is highly associated with the increasing number of 3-pointer attempts, since I didn't include the number of shot attempts, it is hard to see the relationship between the attempts. Besides, more assists fewer steals, and fewer blocks from year to year also give us much insight into the game of Basketball in the NBA. Combined my work and the results from that paper, we can confirm the statement that the basketball game has been through a sort of "revolution" that more and more players tend to have shorter possessions, less emphasis on defense and tactical play, and, as a consequence, more turnovers, and more attractive basketball for the audience to view. That's also why NBA has become a successful league not only professionally, but also commercially. \
+
+In the second part, I created a regression model to predict the numbers of points a play can score per game by using all the data from 2011 to 2020. It is arguable that since the stats of players changed a lot over time, this model might not able to precisely predict players nowadays, but this model still has a sort of authority due to the good performance of several statistical tests. Compare to the model used in the first article of my literature review, my model seems to be too simple to predict a player's score. The author in his article used the Naive Bayes model and maximized the likelihood expression, and that's some direction I can consider to improve my model. Despite more advanced modeling techniques, my model also has a sort of non-constant variant and potential multicollinearity that might need to improve in the future. \
+
+Overall, the research process gives me a lot of motivation for my research question. I love basketball and have been watching a lot of NBA games as well. Using the techniques I learned to analyze the stats of NBA players not only give me a different angle to view the game, but also know the process that the NBA has been through these years, and have a more insightful understanding of the NBA games. In the future, I would like to connect the changes in NBA games with its commercial development, so that I can probably dig more into the reason why players in NBA play so much differently than they did years ago.
+
+## Reference 
+
+Mandić, R., Jakovljević, S., Erčulj, F., &amp; Štrumbelj, E. (2019, October 7). Trends in NBA and Euroleague Basketball: Analysis and comparison of statistical data from 2000 to 2017. PLOS ONE. Retrieved December 18, 2022, from https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0223524 
+
+Wheeler, K. (2012). predicting nba player performance. Santa Clara; Standford University 
+
+Lloyd, J., McKeown , K., &amp; Smith , M. (n.d.). Player rankings 11-20. Player Rankings - Basketball Monster. Retrieved December 18, 2022, from https://basketballmonster.com/playerrankings.aspx 
+
+
+

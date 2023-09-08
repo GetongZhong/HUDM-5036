@@ -1,0 +1,183 @@
+---
+title: "Milestone_4_cc"
+author: "Christina Zhong"
+date: "10/17/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 3. Model Building
+```{r}
+data<-read.csv("new.csv", header=TRUE, sep=",")
+year <- substr(as.character(data[,'tradeTime']),1,4)   
+data_w_year <-cbind(data,year)                    
+y2018 <- data[year=="2018",] 
+```
+
+## A
+First, we defined a new binary variable for square. We will also need to make sure that R treats it as categorical and check the dummy coding.
+We decided to change qualitative variable "renovation Condition" into a binary variable called "fine". In the original "renovation condition", there are four levels of renovation condition include: other(1), rough(2), simplicty(3), and hardcover(4). We categorized housing based on it's different level of renovation conditions ("fine" equal to 0 when housing has renovation condition less equal to 3, else "fine" equal to 0)
+```{r}
+fine<-ifelse((y2018$renovationCondition==4),1,0)
+fine <- factor(fine)
+contrasts(fine)
+```
+## B
+Next, we added the binary response variable "fine" into our data set with all the explanatory variables that we chose to investigate from the EDA section, including price per square (price), total price (totalPrice), community average housing price (communityAverage), the number of drawing rooms (drawingRooms) and the number of living rooms (livingRooms). We then changed the data type of the variables living room and drawing room to numeric, since they were originally in character.
+```{r}
+model_data<- data.frame(y2018[,c(9,10,26,12,13)],fine)
+model_data$livingRoom<-sapply(model_data$livingRoom, as.numeric )
+model_data$drawingRoom<-sapply(model_data$drawingRoom, as.numeric )
+```
+Now, we have the dataframe for our model ready. Before start fitting models, we will first divide our dataset into a training set and a test set.
+
+```{r}
+RNGkind(sample.kind = "Rejection")
+set.seed(10)
+sample.data<-sample.int(nrow(model_data), floor(.50*nrow(model_data)), replace = F)
+train<-model_data[sample.data, ]
+test<-model_data[-sample.data, ]
+```
+
+## C
+### Logistic Regression
+```{r}
+##fit logistic regression using training data
+result<-glm(fine~totalPrice+price+communityAverage+livingRoom+drawingRoom, family=binomial, data=train)
+summary(result)
+
+##store the true positive and false positive rates
+preds<-predict(result,newdata=test, type="response")
+##need ROCR package to produce ROC curve
+library(ROCR)
+rates<-prediction(preds, test$fine)
+```
+
+#### plot ROC curve and overlay the diagonal line for random guessing
+
+```{r}
+roc_result<-performance(rates,measure="tpr", x.measure="fpr")
+plot(roc_result, main="ROC Curve")
+lines(x = c(0,1), y = c(0,1), col="red")
+```
+#### compute the AUC
+```{r}
+auc<-performance(rates, measure = "auc")
+auc@y.values[[1]]
+```
+
+#### estimated test error rate using k fold cross-validation with k = 5 and k=10
+```{r}
+library(boot)
+five.fold<-cv.glm(train,result, K=5)
+five.fold$delta
+ten.fold<-cv.glm(train,result, K=10)
+ten.fold$delta
+``` 
+#### actual test error rate by using the test data
+```{r}
+1-(table(test$fine,preds > 0.5)[1]+table(test$fine,preds > 0.5)[4])/111
+```
+
+### LDA
+```{r}
+library(MASS)
+##Carry out LDA on training data
+lda.fine <- lda(fine ~ ., data=train)
+##predictions on test data. 
+lda.test <- predict(lda.fine,test)
+```
+
+#### ROC
+```{r}
+library(ROCR)
+preds<-lda.test$posterior[,2]
+rates<-prediction(preds, test$fine)
+roc_result<-performance(rates,measure="tpr", x.measure="fpr")
+plot(roc_result)
+lines(x = c(0,1), y = c(0,1), col="red")
+```
+
+#### AUC
+```{r}
+auc<-performance(rates, measure = "auc")
+auc@y.values[[1]]      
+```
+#### estimated test error rate using k fold cross-validation with k = 5 and k=10
+```{r}
+library(ipred)
+##this function returns the estimated posterior probabilities for a model with new data
+cv.da <- function(object, newdata) 
+{
+  return(predict(object, newdata = newdata)$class)
+} 
+RNGkind(sample.kind = "Rejection")
+set.seed(10)
+errorest(fine ~ ., data=train, model=lda, estimator="cv", est.para=control.errorest(k=5), predict=cv.da)$err
+errorest(fine ~ ., data=train, model=lda, estimator="cv", est.para=control.errorest(k=10), predict=cv.da)$err 
+```
+
+#### actual test error rate by using the test data.
+```{r}
+1-mean(test$fine == lda.test$class)
+```
+
+## D
+In the improved model, we dropped the variable  "price", since these this variable has the p value greater than 0.05, which indicated as insignificant to the prediction of "fine" with other variable present.(We have tried dropping different combinations of insignificant variables, and dropping "price" gave us the best model)
+### Logistic Regression
+```{r}
+##fit logistic regression using training data
+result<-glm(fine~totalPrice+communityAverage+livingRoom+drawingRoom, family=binomial, data=train)
+summary(result)
+preds<-predict(result,newdata=test, type="response")
+##need ROCR package to produce ROC curve
+library(ROCR)
+rates<-prediction(preds, test$fine)
+```
+
+#### plot ROC curve and overlay the diagonal line for random guessing
+
+```{r}
+roc_result<-performance(rates,measure="tpr", x.measure="fpr")
+plot(roc_result, main="ROC Curve")
+lines(x = c(0,1), y = c(0,1), col="red")
+```
+
+#### compute the AUC
+```{r}
+auc<-performance(rates, measure = "auc")
+auc@y.values[[1]]
+```
+
+#### estimated test error rate using k fold cross-validation with k = 5 and k=10
+```{r}
+library(boot)
+five.fold<-cv.glm(train,result, K=5)
+five.fold$delta
+ten.fold<-cv.glm(train,result, K=10)
+ten.fold$delta
+``` 
+#### actual test error rate by using the test data
+```{r}
+1-(table(test$fine,preds > 0.5)[1]+table(test$fine,preds > 0.5)[4])/111
+```
+
+#### actual test error rate by using the test data.
+```{r}
+1-mean(test$fine == lda.test$class)
+```
+
+## E
+Our first logistic regression model contains 5 predictors, including price per square (price), total price (totalPrice), community average housing price (communityAverage), the number of drawing rooms (drawingRooms) and the number of living rooms (livingRooms). The output from the summary() function for this model shows that three predictors, including totalPrice, drawingRooms and livingRooms, were significant. The results are not surprising. We speculated that renovation condition is already priced into the total price of a house since the buyer of the house can save a lot of money on renovating if the renovation condition is already good when they purchase it. We also expected that the number of drawing rooms and living rooms are relevant since having more rooms might indicate that the property is more luxurious and, therefore, have better renovation condition. However, two predictors in the model, price and communityAverage, were insignificant. This is probably not very surprising if we think about this intuitively. If we already have totalPrice in the model, price per square might not give us much new information because if price per square is high, it is very likely that the total price is also high. Similar reasoning can also be used in the case of communityAverage.
+
+We tried several models and our best improved model contains four predictors, including totalPrice, communityAverage, livingRoom and DrawingRoom, with price being dropped from our first logistic regression model. The output from the summary() function shows that all predictors are significant. This is not surprising since our selection of predictors is based on our previous analysis.
+
+## F
+```{r}
+lda.fine <- lda(fine ~., data=train)
+lda.fine
+```
+According to the lda result, we can see that "drawingroom" has the largest weight among all the variables, therefore, it means that drawing room is the predictors that drive the classification.what we've learned from the lda conclusion is that, statistically, numbers of drawing room might be the most influential factor that affect the level of renovation condition for a housing in Beijing.

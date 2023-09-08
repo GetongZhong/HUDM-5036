@@ -1,0 +1,73 @@
+---
+title: "HW8"
+author: "Getong Zhong"
+date: "2022-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+```
+
+## Task 1 
+```{r}
+aiw <- read_file(file = "https://www.gutenberg.org/files/11/11-0.txt")
+nchar(aiw)
+is.vector(aiw)
+length(aiw)
+```
+
+## Task 2
+```{r}
+str_sub(aiw, 1, 3000)
+```
+
+## Task 3
+```{r}
+aiw1 <- str_replace_all(aiw, "\n", "")
+aiw2 <- str_replace_all(aiw1, "\r", "")
+
+```
+
+## Task 4
+```{r}
+split <- strsplit(x = aiw2, split = "***", fixed = TRUE)
+aiw2 <- split[[1]][3]
+
+```
+
+## Task 5
+```{r}
+aiw3 <- unlist(str_split(aiw2, " "))
+aiw3 <- aiw3[aiw3 != ""]
+```
+
+## Task 6
+13.35159% of words in the book contain at least one uppercase letter
+```{r}
+sum(str_detect(aiw3,"[[:upper:]]"))/length(aiw3)*100
+```
+
+## Task 7
+24.17227% of words in the book use some form of punctuation
+```{r}
+
+sum(str_detect(aiw3,"[[:punct:]]+"))/length(aiw3)*100
+```
+
+## Task 8
+There are 8 "mushroom"s, the context are shown below
+```{r}
+inds <- grep(pattern = "mushroom", ignore.case = TRUE, x = aiw3)
+length(inds)
+paste(aiw3[inds-6], aiw3[inds-5], aiw3[inds-4],aiw3[inds-3], aiw3[inds-2],aiw3[inds-1], aiw3[inds], aiw3[inds+1],aiw3[inds+2],aiw3[inds+3],aiw3[inds+4],aiw3[inds+5],aiw3[inds+6], sep = ' ', collapse = " // ")
+```
+
+## Task 9
+```{r}
+
+sub(pattern = "mushroom", replacement = "apple", x = aiw3, ignore.case = TRUE)
+
+```

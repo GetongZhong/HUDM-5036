@@ -1,0 +1,74 @@
+---
+title: "Untitled"
+author: "Getong Zhong"
+date: "2022-10-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(AMCP)
+library(tidyverse)
+library(ggpubr)
+```
+
+## Problem 1
+```{r}
+data("C11E19")
+dat1 <- C11E19
+```
+## Problem 2 
+```{r}
+dat1['ID'] <- 1:nrow(dat1)
+```
+## Problem 3
+```{r}
+dat1_long <- dat1 %>% 
+               pivot_longer( c(`Face`, `Circle`, `Paper`, `White`), names_to = "target", values_to = "gaze_time")
+dat1_long
+```
+## Problem 4
+```{r}
+apply(X = dat1[,1:4], MARGIN = 2, FUN = mean)
+apply(X = dat1[,1:4], MARGIN = 2, FUN = sd)
+```
+
+## Problem 5
+```{r}
+
+group_by(dat1_long, ID) %>%
+  summarise(mean = mean(gaze_time))
+```
+
+## Problem 6
+```{r}
+
+par(mfrow=c(2,2))
+
+a <- ggplot(subset(dat1_long, target=='Face'), mapping = aes(x = ID, y = gaze_time)) + 
+  geom_boxplot() +
+  xlab("face") + 
+  ylab("gaze time") + 
+  ggtitle("Boxplot for Face vs Gaze Time")
+
+b <- ggplot(subset(dat1_long, target=='Circle'), mapping = aes(x = ID, y = gaze_time)) + 
+  geom_boxplot() +
+  xlab("circle") + 
+  ylab("gaze time") + 
+  ggtitle("Boxplot for Circle vs Gaze Time")
+
+c <- ggplot(subset(dat1_long, target=='Paper'), mapping = aes(x = ID, y = gaze_time)) + 
+  geom_boxplot() +
+  xlab("newspaper") + 
+  ylab("gaze time") + 
+  ggtitle("Boxplot for Newspaper vs Gaze Time")
+
+d <- ggplot(subset(dat1_long, target=='White'), mapping = aes(x = ID, y = gaze_time)) + 
+  geom_boxplot() +
+  xlab("white") + 
+  ylab("gaze time") + 
+  ggtitle("Boxplot for White vs Gaze Time")
+
+ggarrange(a, b , c, d ,
+          ncol = 2, nrow = 2)
+```

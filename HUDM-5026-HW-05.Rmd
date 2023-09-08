@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+author: "Getong Zhong"
+date: "2022-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+```{r}
+acu <- read.csv("C:/Users/tonyg/Desktop/Academic/Grad/HUDM 5026/acupuncture.csv", header = TRUE)
+
+```
+
+## Problem 2
+```{r}
+apply(X = acu, MARGIN = 2, FUN = mean)
+apply(X = acu, MARGIN = 2, FUN = sd)
+```
+
+## Problem 3
+```{r}
+by(data = acu$pk5, 
+   INDICES = acu$group, 
+    FUN = mean)
+```
+I don't think it is enough to make a conlusion about the efficacy of acunpuncture only based on data of different treatment group. There are many other important variables should be consider to make this conclusion such as age, sex, migraine, and chronicity. we should consider the mean value from this data too while make a conlusion about the efficacy of acunpuncture.
+
+## Problem 4
+```{r}
+acu$diff <- acu$pk1 - acu$pk5
+
+```
+
+## Problem 5
+```{r}
+
+acu$remission <- ifelse(acu$`diff` >= 10, 1, 0)
+```
+
+## Problem 6
+### (3)
+```{r}
+library(tidyverse)
+summarize(group_by(acu, group), mean(`pk5`))
+```
+
+### (4)
+```{r}
+acu <- acu %>% mutate(diff2 = acu$pk1 - acu$pk5)
+```
+
+### (5)
+```{r}
+acu <- acu %>% mutate(remission2 = ifelse(acu$`diff2` >= 10, 1, 0))
+```
+
+## Problem 7
+```{r}
+plot(acu$pk1, acu$pk5, main = "pk1 vs pk5 (R base)",
+     xlab = "baseline headache severity rating", 
+     ylab = "1-year headache severity rating")
+```
+
+## Problem 8
+```{r}
+library(ggplot2)
+
+ggplot(acu, aes(x = pk1, y = pk5)) + 
+  geom_point() +
+  xlab("baseline headache severity rating") + 
+  ylab("1-year headache severity rating") + 
+  ggtitle("pk1 vs pk5 (ggplot2)")
+
+```
+
+## Problem 9
+```{r}
+
+acu$new <- 0.5*acu$sex+acu$group
+cols <- factor(x = acu$new, 
+               levels = c(0, 0.5, 1, 1.5),
+               labels = c("blue", "orange", "purple", "green"))
+
+plot(acu$pk1, acu$pk5, main = "pk1 vs pk5 (R base)",
+     xlab = "baseline headache severity rating", 
+     ylab = "1-year headache severity rating",
+     pch = 19,
+     cex = .9,
+     col = as.character(cols)
+     )
+legend(x = "topright",
+       legend = c("Male+Controlgroup", "Female+Controlgroup", "Male+TreatmentGroup", "Female+TreatmentGroup"),
+       col = c("blue", "orange", "purple", "green"),
+       pch = 15, pt.cex = 1)
+```
+
+## Problem 10
+```{r}
+acu$new[acu$new == 0] <- "Male+Controlgroup"
+acu$new[acu$new == 0.5] <- "Female+Controlgroup"
+acu$new[acu$new == 1] <- "Male+TreatmentGroup"
+acu$new[acu$new == 1.5] <- "Female+TreatmentGroup"
+ggplot(data = acu, mapping = aes(x = pk1, y = pk5)) + 
+  geom_point(mapping = aes(color = new), size = 2, shape = 15) + 
+  xlab("baseline headache severity rating") + 
+  ylab("1-year headache severity rating") + 
+  ggtitle("pk1 vs pk5 (ggplot2)") +
+  guides(color = guide_legend(title = "Sex + Group"))
+
+
+```
